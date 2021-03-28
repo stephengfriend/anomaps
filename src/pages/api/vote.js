@@ -2,8 +2,7 @@ import redis from '../../lib/redis'
 
 export default async function upvote(req, res) {
   const { title, id } = req.body
-  const ip =
-    req.headers['x-forwarded-for'] || req.headers['Remote_Addr'] || 'NA'
+  const ip = req.headers['x-forwarded-for'] || req.headers['Remote_Addr'] || 'NA'
   const count = ip === 'NA' ? 1 : await redis.sadd('s:' + title, ip)
 
   if (count === 0) {
