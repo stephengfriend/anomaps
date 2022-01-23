@@ -8,7 +8,6 @@
     "format": "prettier -w .",
     "format:check": "prettier -c .",
     "lint": "eslint . --ext ts --ext tsx --ext js",
-    "preinstall": "npx npm-force-resolutions",
     "start": "next start",
     "test": "jest",
     "types:check": "tsc --pretty --noEmit"
@@ -23,9 +22,6 @@
       "npm run format"
     ]
   },
-  "resolutions": {
-    "webpack": "5.28.0"
-  },
   "dependencies": {
     "@happykit/analytics": "^1.0.1",
     "@happykit/flags": "^0.3.0",
@@ -38,6 +34,7 @@
     "ioredis": "^4.23.0",
     "next": "latest",
     "next-auth": "^3.13.3",
+    "next-pwa": "^5.0.6",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-hot-toast": "^1.0.2",

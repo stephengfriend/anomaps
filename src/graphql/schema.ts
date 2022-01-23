@@ -12,8 +12,8 @@ type System {
 }
 
 type Query {
-  getAllSystems(): [System!]!
-  getSystemByName(name: String!): System!
+  systems: [System!]!
+  system(name: String!): System!
 }`
 
 export default makeExecutableSchema({ typeDefs, resolvers })

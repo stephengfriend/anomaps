@@ -1,25 +1,18 @@
-import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/client'
 
-import { GET_ALL_SYSTEMS_QUERY } from '~/hooks/use-systems'
-import { GET_SYSTEM_BY_NAME_QUERY } from '~/hooks/use-system'
+import { GET_ALL_SYSTEMS_QUERY, GET_SYSTEM_BY_NAME_QUERY } from '~/hooks/use-systems'
+import useRedirectToUppercase from '~/hooks/use-redirect-to-uppercase'
 import urql from '~/lib/urql'
 import System from '~/models/system'
 
 import Head from 'next/head'
 
 import { GetStaticPaths, GetStaticProps } from 'next'
-import { useEffect } from 'react'
 
 const Page: React.FC<System> = ({ id, name }) => {
-  const router = useRouter()
   const [session, loading] = useSession()
 
-  useEffect(() => {
-    if (!loading && !session) {
-      router.push('/')
-    }
-  }, [loading, router, session])
+  useRedirectToUppercase()
 
   return (
     <>
@@ -31,6 +24,7 @@ const Page: React.FC<System> = ({ id, name }) => {
       <main>
         {loading && 'loading'}
         {!loading && session && `System id for ${name} is ${id}`}
+        {!loading && !session && `No ${name} anomalies for you!`}
       </main>
     </>
   )
@@ -41,38 +35,32 @@ export default Page
 export const getStaticPaths: GetStaticPaths = async () => {
   const { data, error } = await urql.query<{ systems: System[] }>(GET_ALL_SYSTEMS_QUERY).toPromise()
 
-  console.log(data);
-
-  if (error) {
-    console.error(error)
-    return ({ paths: [], fallback: false })
-  }
+  if (error) throw error
 
   return {
     paths:
-      data?.systems?.map(({ name: system }) => ({
-        params: { ...(system ? { system: system.toLowerCase() } : '') },
+      data?.systems?.map(({ name }) => ({
+        params: { name },
       })) || [],
-    fallback: false, // Note: In a static-only build, we don't need fallback rendering.
+    fallback: true, // Note: In a static-only build, we don't need fallback rendering.
   }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  if (!params?.system) {
+  if (Array.isArray(params?.name) || !params?.name) return { props: {}, notFound: true }
+
+  const { data, error } = await urql
+    .query<{ system: System }>(GET_SYSTEM_BY_NAME_QUERY, { name: params.name })
+    .toPromise()
+
+  if (error) throw error
+
+  // No matching system name
+  if (!data) {
     return {
       props: {},
+      notFound: true,
     }
-  }
-
-  const { data, error } = await urql.query<{ system: System }>(GET_SYSTEM_BY_NAME_QUERY).toPromise()
-
-  console.log(data);
-
-  if (error) {
-    console.error(error)
-    return ({
-      props: {},
-    })
   }
 
   return {
